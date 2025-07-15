@@ -9,4 +9,6 @@ type User struct {
 	Department string    `json:"department"`
 	Status     string    `gorm:"default:active" json:"status"`
 	CreatedAt  time.Time `gorm:"autoCreateTime" json:"created_at"`
+
+	AttendanceRecords []AttendanceRecord `gorm:"foreignKey:UserID" json:"attendance_records,omitempty"`
 }

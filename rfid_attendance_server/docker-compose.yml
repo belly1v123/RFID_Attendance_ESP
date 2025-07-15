@@ -1,18 +1,23 @@
 version: '3.8'
 
 services:
+  # my-api-services:
+  #   container_name: rfid-attendance-container
+  #   image: my-api
+  #   build: .
+  #   ports:
+  #     - "8000:8080"
   db:
-    image: postgres:15
+    image: postgres:16.2-alpine
     container_name: rfid_postgres
     restart: always
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secretpass
-      POSTGRES_DB: rfid_attendance
+    command: postgres -c max_wal_senders=2 -c wal_level=logical -c max_replication_slots=2
+    env_file: .env
+
     volumes:
       - pgdata:/var/lib/postgresql/data
-
+      
 volumes:
   pgdata:
