@@ -1,0 +1,123 @@
+Table SystemAdmin {
+  Id varchar [pk]
+  
+  Name varchar
+  Email varchar
+  Password varchar
+  Phone_no varchar
+  role varchar
+
+  created_at datetime
+  updated_at datetime
+}
+
+
+Table Organization {
+  Id varchar [pk]
+  Name varchar
+	Email     string 
+	Phone     string
+  Address varchar
+  
+  Available_roles jsonb
+  Available_shifts jsonb
+
+  created_by_id varchar
+  // created_by_type enum('SystemAdmin', 'OrgAdmin')
+  updated_by_id varchar
+  updated_by_type enum('SystemAdmin', 'OrgAdmin')
+
+  created_at datetime
+  updated_at datetime
+}
+
+
+Table Organization_Admin {
+  Id varchar [pk]
+  Organization_Id varchar
+  Name varchar
+  Email varchar
+  Password varchar
+  Phone_no varchar
+ 
+  created_by varchar  // FK to SystemAdmin.Id
+  updated_by varchar  // FK to SystemAdmin.Id
+  created_at datetime
+  updated_at datetime
+}
+
+
+Table Organization_Member {
+  Id varchar [pk]
+  Organization_id varchar
+  Name varchar
+  Email varchar
+
+  Phone_no varchar
+  Role varchar 
+  is_active bool
+  rfid_uid     varchar(32)
+  Department   varchar(100) 
+  status       varchar(20) [not null, note: 'active, inactive, disabled, deleted']
+  shift  varchar 
+
+  expected_checkin_time time
+  expected_checkout_time time
+
+  created_by varchar
+  updated_by varchar
+  deleted_by varchar
+
+  created_at datetime
+  updated_at datetime
+  deleted_at datetime
+
+
+}
+
+Table Attendance_Record {
+  id           serial [primary key] //auto generated serial id
+  user_id      int
+  check_in     timestamp
+  check_out    timestamp
+  day          date [not null]
+  status       varchar(20) [not null, note: 'present, absent, late, half-day, on-leave']
+}
+
+Table Scan_Log {
+  id           serial [primary key] //auto generated serial id
+  rfid_uid     varchar(32) [not null]
+  scanned_at   timestamp [default: `now()`]
+  recognized   boolean [default: false]
+}
+
+
+Table Activity_Log {
+  Id VARCHAR [pk] //auto generated serial id
+  user_id VARCHAR 
+  user_type enum('SystemAdmin', 'OrgAdmin')
+
+  action ENUM('create', 'update', 'delete', 'login', 'logout') 
+  target_type ENUM('Organization', 'Organization_Admin', 'Organization_Member') 
+  target_id VARCHAR 
+
+  organization_id VARCHAR  // optional, helps filtering []
+
+  ip_address VARCHAR(45)
+  user_agent TEXT
+  extra_data JSONB
+  message TEXT
+  status ENUM('success', 'fail') [DEFAULT:'success']
+  created_at TIMESTAMP [default: 'now()']
+}
+
+Ref: Organization_Admin.Organization_Id > Organization.Id
+Ref: Organization_Admin.created_by > SystemAdmin.Id
+Ref: Organization_Admin.updated_by > SystemAdmin.Id
+
+Ref: Organization_Member.Organization_id > Organization.Id
+Ref: Organization_Member.created_by > Organization_Admin.Id
+Ref: Organization_Member.updated_by > Organization_Admin.Id
+Ref: Attendance_Record.user_id > Organization_Member.Id
+
+

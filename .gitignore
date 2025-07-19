@@ -1,4 +1,2 @@
 rfid_attendance_server/.env
-*.env
-
-
+*/*.env

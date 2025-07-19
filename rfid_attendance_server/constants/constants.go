@@ -1,3 +1,3 @@
 package constants
 
-var EntryDuplicationDelay = 5.0
+var EntryDuplicationDelay = 5

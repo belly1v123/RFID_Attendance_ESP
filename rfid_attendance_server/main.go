@@ -13,12 +13,19 @@ func main() {
 
 	// Auto-migrate user table
 	err := config.DB.AutoMigrate(
-		&models.User{},
+		// &models.User{},
+		&models.SystemAdmin{},
+		&models.Organization{},
+		&models.OrganizationAdmin{},
+		&models.OrganizationMember{},
+		&models.ScanLog{},
 		&models.AttendanceRecord{},
-		&models.Log{},
+		&models.ActionLog{},
 	)
 
-	utils.HandlePanicError(err)
+	utils.HandleError(err, true)
+	err = config.SeedSuperAdmin(config.DB)
+	utils.HandleError(err, false)
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -26,7 +33,11 @@ func main() {
 	})
 
 	r.POST("/api/scan", controllers.HandleRFIDScan)
+	r.POST("/api/register", controllers.RegisterUser)
+	r.POST("/api/admin/login", controllers.AdminSignIn)
+	// p := r.Group("/api/admin")
 
+	// p.use
 	err = r.Run(":3000")
-	utils.HandlePanicError(err)
+	utils.HandleError(err, true)
 }
