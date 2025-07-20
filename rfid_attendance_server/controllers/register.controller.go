@@ -44,7 +44,7 @@ func RegisterUser(c *gin.Context) {
 
 	res := db.Create(&user).First(&user)
 	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to register user", "error": res.Error.Error()})
 		return
 	}
 

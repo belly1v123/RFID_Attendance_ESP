@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func AdminSignIn(c *gin.Context) {
+func SystemAdminSignIn(c *gin.Context) {
 	var req struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -39,6 +39,22 @@ func AdminSignIn(c *gin.Context) {
 	admin.AuthToken = token
 
 	config.DB.Save(&admin)
+	// Development setup - no domain, insecure (HTTP)
+	c.SetCookie("auth_token", token, 3600, "/", "", false, true)
 	c.JSON(http.StatusOK, gin.H{"token": token})
 
+}
+
+func SystemAdminLogout(c *gin.Context) {
+	// email, _ := c.Get("email")
+	userId, _ := c.Get("user_id")
+
+	var admin models.SystemAdmin
+	config.DB.Where("id = ?", userId).First(&admin)
+
+	admin.AuthToken = ""
+	config.DB.Save(&admin)
+
+	c.SetCookie("auth_token", "", 0, "/", "", false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }

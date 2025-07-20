@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/ronishg27/rfid_attendance/constants"
 	"github.com/ronishg27/rfid_attendance/models"
 )
 
@@ -21,9 +22,9 @@ func GenerateJWT(systemAdmin *models.SystemAdmin, orgAdmin *models.OrganizationA
 		return "" // or return an error
 	}
 
-	role := "OrgAdmin"
+	role := constants.OrgAdmin
 	if systemAdmin != nil {
-		role = "SystemAdmin"
+		role = constants.SystemAdmin
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -12,13 +12,12 @@ import (
 
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr := c.GetHeader("Authorization")
-		if tokenStr == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+
+		tokenStr, err := c.Cookie("auth_token")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing auth token cookie"})
 			return
 		}
-
-		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
 
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 			// Validate signing method
@@ -39,9 +38,39 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Set user info to context if needed
-		c.Set("user_id", claims["user_id"])
-		c.Set("email", claims["email"])
+		if claims["user_id"] == nil || claims["email"] == nil || claims["role"] == nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			return
+		}
+
+		if exp, ok := claims["exp"].(float64); ok {
+			if int64(exp) < time.Now().Unix() {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
+				return
+			}
+		}
+
+		userID, ok := claims["user_id"].(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID type"})
+			return
+		}
+		c.Set("user_id", userID)
+
+		email, ok := claims["email"].(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid email type"})
+			return
+		}
+		c.Set("email", email)
+
+		role, ok := claims["role"].(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid role type"})
+			return
+		}
+		c.Set("role", role)
+
 		c.Next()
 	}
 }
