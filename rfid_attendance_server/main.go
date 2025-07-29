@@ -3,9 +3,8 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ronishg27/rfid_attendance/config"
-	"github.com/ronishg27/rfid_attendance/controllers"
-	"github.com/ronishg27/rfid_attendance/middleware"
 	"github.com/ronishg27/rfid_attendance/models"
+	"github.com/ronishg27/rfid_attendance/routes"
 	"github.com/ronishg27/rfid_attendance/utils"
 )
 
@@ -33,12 +32,7 @@ func main() {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
 
-	r.POST("/api/scan", controllers.HandleRFIDScan)
-	r.POST("/api/register", controllers.RegisterUser)
-	r.POST("/api/admin/login", controllers.SystemAdminSignIn)
-	r.POST("/api/admin/logout", middleware.JWTAuthMiddleware(), controllers.SystemAdminLogout)
-
-	r.POST("/api/admin/org", middleware.JWTAuthMiddleware(), controllers.CreateOrganization)
+	routes.SetupRoutes(r)
 
 	err = r.Run(":3000")
 	utils.HandleError(err, true)

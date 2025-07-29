@@ -1,12 +1,13 @@
 version: '3.8'
 
 services:
-  # my-api-services:
-  #   container_name: rfid-attendance-container
-  #   image: my-api
-  #   build: .
-  #   ports:
-  #     - "8000:8080"
+  my-api-services:
+    
+    container_name: rfid-attendance-container
+    image: my-api
+    build: .
+    ports:
+      - "8000:8000"
   db:
     image: postgres:16.2-alpine
     container_name: rfid_postgres
