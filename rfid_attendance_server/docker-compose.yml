@@ -1,13 +1,16 @@
-version: '3.8'
 
 services:
   my-api-services:
     
     container_name: rfid-attendance-container
-    image: my-api
+    image: golang:1.24.1-alpine
     build: .
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: go run main.go
     ports:
-      - "8000:8000"
+      - "3000:3000"
   db:
     image: postgres:16.2-alpine
     container_name: rfid_postgres
