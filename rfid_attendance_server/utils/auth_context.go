@@ -1,6 +1,8 @@
 package utils
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func GetAuthContext(c *gin.Context) (userID, email, role string) {
 	uid, _ := c.Get("user_id")

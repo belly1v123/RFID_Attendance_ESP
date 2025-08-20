@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ronishg27/rfid_attendance/config"
-	"github.com/ronishg27/rfid_attendance/models"
+	models "github.com/ronishg27/rfid_attendance/internal/models/temp"
 )
 
 func RegisterUser(c *gin.Context) {

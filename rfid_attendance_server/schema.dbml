@@ -121,3 +121,17 @@ Ref: Organization_Member.updated_by > Organization_Admin.Id
 Ref: Attendance_Record.user_id > Organization_Member.Id
 
 
+
+
+
+
+tenant
+id, displayName, schemaName, assetsfoldername, ...
+
+db user, Password
+
+
+migrate loop
+
+api - tenant middleware 
+t.id, 

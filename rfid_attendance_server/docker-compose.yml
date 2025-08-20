@@ -1,7 +1,6 @@
 
 services:
   my-api-services:
-    
     container_name: rfid-attendance-container
     image: golang:1.24.1-alpine
     build: .
@@ -11,6 +10,7 @@ services:
     command: go run main.go
     ports:
       - "3000:3000"
+    
   db:
     image: postgres:16.2-alpine
     container_name: rfid_postgres
@@ -19,7 +19,10 @@ services:
       - "5432:5432"
     command: postgres -c max_wal_senders=2 -c wal_level=logical -c max_replication_slots=2
     env_file: .env
-
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
       

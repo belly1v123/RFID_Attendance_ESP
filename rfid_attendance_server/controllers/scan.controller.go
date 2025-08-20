@@ -7,15 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ronishg27/rfid_attendance/config"
 	"github.com/ronishg27/rfid_attendance/constants"
-	"github.com/ronishg27/rfid_attendance/models"
+	models "github.com/ronishg27/rfid_attendance/internal/models/temp"
 	"gorm.io/gorm"
 )
 
 type ScannedRfidRequest struct {
 	RFID_UID string `json:"uid"`
+	OrgID    string `json:"org_id"`
 }
 
 func HandleRFIDScan(c *gin.Context) {
+
 	var req ScannedRfidRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})

@@ -1,9 +1,5 @@
 package controllers
 
-// TODO: complete the UpdateOrganization controller,
-// TODO: check if the user is authorized to update the organization i.e. if user in orgAdmin check if its belong to org or not --  done ✅
-// TODO: complete the DeleteOrganization controller -- ✅
-
 import (
 	"log"
 	"net/http"
@@ -12,7 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ronishg27/rfid_attendance/config"
 	"github.com/ronishg27/rfid_attendance/constants"
-	"github.com/ronishg27/rfid_attendance/models"
+	models "github.com/ronishg27/rfid_attendance/internal/models/temp"
+
 	"github.com/ronishg27/rfid_attendance/utils"
 )
 
@@ -37,7 +34,7 @@ func CreateOrganization(c *gin.Context) {
 
 	adminID, _, role := utils.GetAuthContext(c)
 
-	if role != constants.SystemAdmin {
+	if role != string(constants.SuperAdmin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden access"})
 		return
 	}
@@ -52,9 +49,10 @@ func CreateOrganization(c *gin.Context) {
 		Email:       req.Email,
 		Phone:       req.Phone,
 		Address:     req.Address,
-		CreatedByID: adminID,
+		CreatedByID: &adminID,
 	}
-
+	// config.PublicDB.Raw("Select * from a.organ")
+	// schema based
 	if err := config.DB.WithContext(c).Create(&org).Error; err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
 			c.JSON(http.StatusConflict, gin.H{"error": "Organization already exists"})
@@ -78,19 +76,19 @@ func GetOrganization(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Organization not found"})
 		return
 	}
-	if role == constants.SystemAdmin {
+	if role == string(constants.SuperAdmin) {
 		c.JSON(http.StatusOK, org)
 		return
 	}
 
-	var orgAdmin models.OrganizationAdmin
-	if err := config.DB.WithContext(c).First(&orgAdmin, "id=?", adminID).Error; err != nil {
+	var admin models.Admin
+	if err := config.DB.WithContext(c).First(&admin, "id=?", adminID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify admin organization"})
 		log.Print("OrgAdmin fetch error:", err)
 		return
 	}
 
-	if orgAdmin.OrganizationID != orgID {
+	if admin.OrganizationID != &orgID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to access this organization"})
 		return
 	}
@@ -100,7 +98,7 @@ func GetOrganization(c *gin.Context) {
 
 func GetAllOrganizations(c *gin.Context) {
 
-	if _, _, role := utils.GetAuthContext(c); role != constants.SystemAdmin {
+	if _, _, role := utils.GetAuthContext(c); role != string(constants.SuperAdmin) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Forbidden access"})
 		return
 	}
@@ -126,7 +124,7 @@ func UpdateOrganization(c *gin.Context) {
 
 	adminID, _, role := utils.GetAuthContext(c)
 
-	if role != constants.SystemAdmin && role != constants.OrgAdmin {
+	if role != string(constants.SuperAdmin) && role != string(constants.OrgAdmin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
@@ -146,15 +144,15 @@ func UpdateOrganization(c *gin.Context) {
 		return
 	}
 
-	if role == constants.OrgAdmin {
-		var orgAdmin models.OrganizationAdmin
+	if role == string(constants.OrgAdmin) {
+		var admin models.Admin
 
-		if err := config.DB.WithContext(c).First(&orgAdmin, "id=?", adminID).Error; err != nil {
+		if err := config.DB.WithContext(c).First(&admin, "id=?", adminID).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify admin organization"})
 			log.Print("OrgAdmin fetch error:", err)
 			return
 		}
-		if orgAdmin.OrganizationID != org.ID {
+		if admin.OrganizationID != &org.ID {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden access"})
 			return
 		}
@@ -173,18 +171,17 @@ func UpdateOrganization(c *gin.Context) {
 		org.Address = *req.Address
 	}
 
-	if req.AvailableRoles != nil {
-		org.AvailableRoles = *req.AvailableRoles
-	}
-	if req.AvailableShifts != nil {
-		org.AvailableShifts = *req.AvailableShifts
-	}
+	// if req.AvailableRoles != nil {
+	// 	org.AvailableRoles = *(*models.JSONBMap)(&req.AvailableRoles)
+	// }
+	// if req.AvailableShifts != nil {
+	// 	org.AvailableShifts = *(*models.JSONBMap)(&req.AvailableShifts)
+	// }
 	if req.EntryDuplicationDelay != nil {
 		org.EntryDuplicationDelay = *req.EntryDuplicationDelay
 	}
 
-	org.UpdatedBy = adminID
-	org.UpdatedByType = role
+	org.UpdatedByID = &adminID
 
 	if err := config.DB.WithContext(c).Save(&org).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update organization"})
@@ -199,7 +196,7 @@ func DeleteOrganization(c *gin.Context) {
 	orgID := c.Param("orgID")
 	// soft delete
 	adminID, _, role := utils.GetAuthContext(c)
-	if role != constants.SystemAdmin {
+	if role != string(constants.SuperAdmin) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
@@ -210,7 +207,7 @@ func DeleteOrganization(c *gin.Context) {
 		return
 	}
 
-	org.DeletedByID = adminID
+	org.DeletedByID = &adminID
 	if err := config.DB.WithContext(c).Save(&org).Delete(&org).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete organization"})
 		log.Print(err.Error())

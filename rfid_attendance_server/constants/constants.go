@@ -2,7 +2,9 @@ package constants
 
 var EntryDuplicationDelay = 5
 
+type AdminLevel string
+
 const (
-	SystemAdmin = "system_admin"
-	OrgAdmin    = "org_admin"
+	SuperAdmin AdminLevel = "super_admin"
+	OrgAdmin   AdminLevel = "org_admin"
 )

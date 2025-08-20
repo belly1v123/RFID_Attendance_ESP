@@ -1,18 +1,22 @@
 package config
 
 import (
+	"context"
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/ronishg27/rfid_attendance/models"
+	"github.com/ronishg27/rfid_attendance/internal/models/public"
+	"github.com/ronishg27/rfid_attendance/internal/my_queries"
 	"github.com/ronishg27/rfid_attendance/utils"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
-func SeedSuperAdmin(db *gorm.DB) error {
-	var count int64
-	db.Model(&models.SystemAdmin{}).Count(&count)
+func SeedSuperAdmin(query *my_queries.Query) error {
+
+	sAdminQuery := query.SuperAdmin
+
+	count, _ := sAdminQuery.Count()
 	if count > 0 {
 		log.Println("Super admin already exists, skipping seed.")
 		return nil
@@ -21,19 +25,20 @@ func SeedSuperAdmin(db *gorm.DB) error {
 	err := godotenv.Load()
 	utils.HandleError(err, true)
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte("SuperSecret123"), bcrypt.DefaultCost)
+	password := os.Getenv("SUPER_ADMIN_PASSWORD")
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	admin := &models.SystemAdmin{
-		Name:        "Super Admin",
-		Email:       "ronishunofficial@gmail.com",
-		Password:    string(passwordHash),
-		PhoneNumber: "9800000000",
-		Role:        "SuperAdmin",
+	admin := &public.SuperAdmin{
+		Name:     "Super Admin",
+		Email:    "a@admin.com",
+		Password: string(passwordHash),
 	}
 
 	log.Println("Seeding super admin...")
-	return db.Create(&admin).Error
+	return sAdminQuery.WithContext(context.Background()).Create(admin)
+
 }
